@@ -26,7 +26,7 @@ public class App {
     SpringApplication.run(App.class);
   }
 
-  private String readFile(String name) {
+  private String readFile(String name) throws FileNotFoundException {
     String data = "";
     try {
       File myObj = new File(name);
@@ -36,6 +36,7 @@ public class App {
       myReader.close();
     } catch (FileNotFoundException e) {
       log.error("File could not be read! :: " + name);
+      throw e;
     }
     return data;
   }
@@ -45,13 +46,18 @@ public class App {
 
     return (args) -> {
       log.info("Current Directory::" + System.getProperty("user.dir"));
-      String json = readFile("data.json");
-      log.info("JSON read successfully");
-      Item[] items = gson.fromJson(json, Item[].class);
-      log.info("JSON parsed successfully");
-      for (Item i : items) {
-        repository.save(i);
-        log.info("Entity Saved :: " + i.toString());
+      try {
+        String json = readFile("data.json");
+        log.info("JSON read successfully");
+        Item[] items = gson.fromJson(json, Item[].class);
+        log.info("JSON parsed successfully");
+        for (Item i : items) {
+          repository.save(i);
+          log.info("Entity Saved :: " + i.toString());
+        }
+      } catch (FileNotFoundException e) {
+        log.info("Could not load data from JSON file.");
+        log.info(" Use '/phone/admin/add' route to update repository.");
       }
     };
   }
